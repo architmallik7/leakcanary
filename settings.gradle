@@ -1,3 +1,12 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'io.harness:gradle-cache:0.0.2'
+    }
+}
+
 include ':leakcanary:leakcanary-android'
 include ':leakcanary:leakcanary-android-core'
 include ':leakcanary:leakcanary-android-instrumentation'
@@ -36,3 +45,21 @@ include ':shark:shark-test'
 rootProject.name = 'leakcanary-repo'
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
+// apply the plugin
+apply plugin: 'io.harness.gradle-cache'
+
+// build cache config
+buildCache {
+    local {
+        // Local build cache is dangerous as it might produce inconsistent results
+        // in case developer modifies files while the build is running
+        enabled = false
+    }
+    remote(io.harness.Cache) {
+        accountId = System.getenv('HARNESS_ACCOUNT_ID') // accountId should be populated in CI pipeline
+        token = System.getenv('HARNESS_PAT')            // API token with account admin (or edit) permissions
+        push = "true"
+        endpoint = System.getenv('HARNESS_CACHE_SERVICE_ENDPOINT') // https://app.harness.io/gateway/cache-service
+    }
+}
